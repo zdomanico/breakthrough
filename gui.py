@@ -1,4 +1,4 @@
-
+from breakthrough import *
 import sys
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -14,7 +14,10 @@ class Example(QWidget):
         self.xy = 800 + 2 * self.margin
         self.initUI()
         self.highlight_list = []
-
+        self.game = Breakthrough()
+        self.x = -1
+        self.y = -1
+        self.game_on = True
     def initUI(self):
 
         self.setGeometry(self.xy, self.xy, self.xy, self.xy)
@@ -36,16 +39,41 @@ class Example(QWidget):
         return (self.height() - 2 * self.margin) // self.n
 
     def mousePressEvent(self, QMouseEvent):
+        if not self.game_on:
+            return
         x = QMouseEvent.x()
         y = QMouseEvent.y()
         wh = self.get_cell_size()
         b = (x - self.margin) // wh
         a = (y - self.margin) // wh
-        print(a, b)
-        if (a,b) in self.highlight_list:
-            self.highlight_list.remove((a,b))
-        else:
+        if a < 0 or a >= self.n or b >= self.n or b < 0:
+            return
+        if (self.x == -1 or self.y == -1) and \
+                self.game.board[a][b] == self.game.get_turn():
             self.highlight_list.append((a, b))
+            self.x = a
+            self.y = b
+            for i in range(min(a - 1, 0), min(a + 2, self.game.n)):
+                for j in range(min(b - 1, 0), min(self.game.n, b + 2)):
+                    print((i, j))
+                    if self.game.valid(self.game.get_turn(), a, b, i, j):
+                        self.highlight_list.append((i, j))
+        elif (self.x == a and self.y == b):
+            self.highlight_list = []
+            self.x = -1
+            self.y = -1
+        elif (a, b) in self.highlight_list:
+            self.game.move(self.game.get_turn(), self.x, self.y, a, b)
+            self.game.change_turn()
+            self.highlight_list= []
+            self.x = -1
+            self.y = -1
+        print(a, b)
+        if (self.game.check_win() != '.'):
+            winner = 'black' if self.game.check_win() == 'x' else 'white'
+            print("There is a winner: " + winner + " won!")
+            print("Press r to reset the board and play again.")
+            self.game_on = False
         self.update()
 
     def keyPressEvent(self, event):
@@ -69,30 +97,10 @@ class Example(QWidget):
         if event.key() == Qt.Key_Q:
             print("Killing")
             self.deleteLater()
-        elif event.key() == Qt.Key_Left:
-            self.game.change_color(-1)
+        elif event.key() == Qt.Key_R:
+            self.game_on = True
+            self.game.reset()
             self.update()
-        elif event.key() == Qt.Key_Right:
-            self.game.change_color(1)
-            self.update()
-        elif event.key() == Qt.Key_Enter:
-            print("Enter!")
-            self.game.confirm_selection()
-            self.update()
-        elif event.key() == Qt.Key_U:
-            self.highlight_cell(0, 0)
-            self.update()
-        elif event.key() == Qt.Key_I:
-            self.un_highlight_cell(0, 0)
-            self.update()
-        elif event.key() < 1000:
-            self.cmd += chr(event.key())
-            if len(self.cmd) == 4:
-                print(self.cmd + " Calling move handler!")
-                self.game.get_move_wrapper(self.cmd)
-                self.update()
-                self.cmd = ""
-                self.game.check_win()
 
     def proceed(self):
         print("Call Enter Key")
@@ -105,8 +113,13 @@ class Example(QWidget):
         qp.setBrush(QBrush(Qt.lightGray, Qt.SolidPattern))
         qp.drawRect(0, 0, int(self.width()), int(self.height()))
         self.drawRectangles(qp)
-        self.draw_circle(qp, 0, 0, 'w')
         self.highlight_cell(qp)
+        for i in range(self.game.n):
+            for j in range(self.game.n):
+                if self.game.board[i][j] == 'x':
+                    self.draw_circle(qp, j, i, 'b')
+                elif self.game.board[i][j] == 'o':
+                    self.draw_circle(qp, j, i, 'w')
         qp.end()
 
     def drawRectangles(self, qp):

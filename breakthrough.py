@@ -5,6 +5,7 @@ class Breakthrough():
     def __init__(self):
         super(Breakthrough,self).__init__()
         self.n = 8
+        self.turn = 'x'
 
         self.board = []
         for i in range(0, self.n):
@@ -16,13 +17,28 @@ class Breakthrough():
                     self.board[i].append('o')
                 else:
                     self.board[i].append('.')
-
+    def change_turn(self):
+        self.turn = 'x' if self.turn == 'o' else 'o'
+    def get_turn(self):
+        return self.turn
     def print_board(self):
         # print(self.board)
         for i in range(0, self.n):
             for j in range(0, self.n):
                 print(self.board[i][j], end=' ')
             print()
+    def reset(self):
+        self.turn = 'x'
+        self.board = []
+        for i in range(0, self.n):
+            self.board.append([])
+            for j in range(0, self.n):
+                if i <= 1:
+                    self.board[i].append('x')
+                elif i >= 6:
+                    self.board[i].append('o')
+                else:
+                    self.board[i].append('.')
 
     def check_win(self):
         if 'o' in self.board[0]:
@@ -34,6 +50,14 @@ class Breakthrough():
     def valid(self, turn, start_x, start_y, end_x, end_y):
         start_piece = self.board[start_x][start_y]
         end_piece = self.board[end_x][end_y]
+        if start_x < 0 or start_x >= self.n:
+            return False
+        if start_y < 0 or start_y >= self.n:
+            return False
+        if end_x < 0 or end_x >= self.n:
+            return False
+        if end_y < 0 or end_y >= self.n:
+            return False
         if start_piece == end_piece or turn != start_piece:
             return False
         if start_piece  == '.':
@@ -77,6 +101,3 @@ class Breakthrough():
             if (self.move(turn, m[0], m[1], m[2], m[3])):
                 turn = 'x' if turn == 'o' else 'o'
         print("There is a winner: " + self.check_win() + " won!")
-
-c = Breakthrough()
-c.print_board()
