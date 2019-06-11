@@ -18,6 +18,7 @@ class Example(QWidget):
         self.x = -1
         self.y = -1
         self.game_on = True
+        self.print_turn()
     def initUI(self):
 
         self.setGeometry(self.xy, self.xy, self.xy, self.xy)
@@ -34,6 +35,10 @@ class Example(QWidget):
         new_size = QSize(10, 10)
         new_size.scale(e.size(), Qt.KeepAspectRatio)
         self.resize(new_size)
+
+    def print_turn(self):
+        player = 'black' if self.game.get_turn() == 'x' else 'white'
+        print("It is " + player + "'s turn!")
 
     def get_cell_size(self):
         return (self.height() - 2 * self.margin) // self.n
@@ -55,7 +60,7 @@ class Example(QWidget):
             self.y = b
             for i in range(min(a - 1, 0), min(a + 2, self.game.n)):
                 for j in range(min(b - 1, 0), min(self.game.n, b + 2)):
-                    print((i, j))
+                    # print((i, j))
                     if self.game.valid(self.game.get_turn(), a, b, i, j):
                         self.highlight_list.append((i, j))
         elif (self.x == a and self.y == b):
@@ -65,16 +70,18 @@ class Example(QWidget):
         elif (a, b) in self.highlight_list:
             self.game.move(self.game.get_turn(), self.x, self.y, a, b)
             self.game.change_turn()
+            self.print_turn()
             self.highlight_list= []
             self.x = -1
             self.y = -1
-        print(a, b)
+        # print(a, b)
         if (self.game.check_win() != '.'):
             winner = 'black' if self.game.check_win() == 'x' else 'white'
             print("There is a winner: " + winner + " won!")
             print("Press r to reset the board and play again.")
             self.game_on = False
         self.update()
+
 
     def keyPressEvent(self, event):
         super(Example, self).keyPressEvent(event)
@@ -100,6 +107,7 @@ class Example(QWidget):
         elif event.key() == Qt.Key_R:
             self.game_on = True
             self.game.reset()
+            self.print_turn()
             self.update()
 
     def proceed(self):

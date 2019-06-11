@@ -81,7 +81,6 @@ class Breakthrough():
         if self.valid(turn, start_x, start_y, end_x, end_y):
             self.board[end_x][end_y] = self.board[start_x][start_y]
             self.board[start_x][start_y] = '.'
-            self.print_board()
             return True
         return False
 
@@ -99,5 +98,6 @@ class Breakthrough():
             print("Enter move player " + turn + ":")
             m = self.get_move()
             if (self.move(turn, m[0], m[1], m[2], m[3])):
+                self.print_board()
                 turn = 'x' if turn == 'o' else 'o'
         print("There is a winner: " + self.check_win() + " won!")
